@@ -12,6 +12,8 @@ Usage of lruc:
         HTTP response code (default 200)
   -content-type string
         Content-Type (default "text/plain")
+  -header
+        HTTP response headers. Zero, one or more are accepted. Eg `-header "Access-Control-Allow-Origin: *" -header "Access-Control-Allow-Methods: POST, GET, OPTIONS"`
 ```
 
 ## License
