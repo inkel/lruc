@@ -6,23 +6,25 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/textproto"
 	"os"
 	"strings"
 )
 
-type stringArray []string
+type headersMap textproto.MIMEHeader
 
-func (i *stringArray) String() string {
-	return strings.Join(*i, ",")
+func (i *headersMap) String() string {
+	return ""
 }
 
-func (i *stringArray) Set(value string) error {
-	*i = append(*i, value)
+func (i *headersMap) Set(value string) error {
+	v := strings.Split(value, ": ")
+	(*i)[v[0]] = append((*i)[v[0]], v[1])
 	return nil
 }
 
 func main() {
-	var headerFlags stringArray
+	var headerFlags headersMap = make(map[string][]string)
 	var (
 		code = flag.Int("code", http.StatusOK, "HTTP response code")
 		ct   = flag.String("content-type", "text/plain", "Content-Type")
@@ -45,12 +47,9 @@ func main() {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
-		for _, h := range headerFlags {
-			ha := strings.Split(h, ": ")
-			if i := w.Header().Get(ha[0]); i != "" {
-				w.Header().Add(ha[0], ha[1])
-			} else {
-				w.Header().Set(ha[0], ha[1])
+		for key, values := range headerFlags {
+			for _, value := range values {
+				w.Header().Add(key, value)
 			}
 		}
 		w.Header().Set("Content-Type", *ct)
