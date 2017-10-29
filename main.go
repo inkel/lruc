@@ -6,16 +6,32 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/textproto"
 	"os"
+	"strings"
 )
 
+type headersMap textproto.MIMEHeader
+
+func (i *headersMap) String() string {
+	return ""
+}
+
+func (i *headersMap) Set(value string) error {
+	v := strings.SplitN(value, ": ", 2)
+	(*i)[v[0]] = append((*i)[v[0]], v[1])
+	return nil
+}
+
 func main() {
+	var headers headersMap = make(map[string][]string)
 	var (
 		code = flag.Int("code", http.StatusOK, "HTTP response code")
 		ct   = flag.String("content-type", "text/plain", "Content-Type")
 		body = flag.String("body", "Hello, World!", "Response body. Use `-` to read from stdin")
 		addr = flag.String("addr", ":8080", "Address to listen for requests")
 	)
+	flag.Var(&headers, "header", "HTTP response headers. Zero, one or more are accepted")
 	flag.Parse()
 
 	bodyBytes := []byte(*body)
@@ -30,8 +46,14 @@ func main() {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(*code)
+
+		for key, values := range headers {
+			for _, value := range values {
+				w.Header().Add(key, value)
+			}
+		}
 		w.Header().Set("Content-Type", *ct)
+		w.WriteHeader(*code)
 		w.Write(bodyBytes)
 	})
 
