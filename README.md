@@ -16,5 +16,24 @@ Usage of lruc:
         HTTP response headers. Zero, one or more are accepted. Eg `-header "Access-Control-Allow-Origin: *" -header "Access-Control-Allow-Methods: POST, GET, OPTIONS"`
 ```
 
+## As a Docker container
+To install the latest (development) version:
+
+```
+docker pull inkel/lruc:latest
+```
+
+Then run it as:
+
+```
+docker run -P inkel/lruc:latest -code 200 -body "Lorem ipsum dolor sit amet"
+```
+
+By default it will expose the port `8080`. If you use the `-addr` you will need to tell Docker to publish a different port, for example:
+
+```
+docker run -p 1234:1234 inkel/lruc:latest -addr :1234
+```
+
 ## License
 See [LICENSE](LICENSE).
