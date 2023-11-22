@@ -11,27 +11,23 @@ import (
 	"strings"
 )
 
-type headersMap textproto.MIMEHeader
-
-func (i *headersMap) String() string {
-	return ""
-}
-
-func (i *headersMap) Set(value string) error {
-	v := strings.SplitN(value, ": ", 2)
-	(*i)[v[0]] = append((*i)[v[0]], v[1])
-	return nil
-}
-
 func main() {
-	var headers headersMap = make(map[string][]string)
 	var (
 		code = flag.Int("code", http.StatusOK, "HTTP response code")
 		ct   = flag.String("content-type", "text/plain", "Content-Type")
 		body = flag.String("body", "Hello, World!", "Response body. Use `-` to read from stdin")
 		addr = flag.String("addr", ":8080", "Address to listen for requests")
 	)
-	flag.Var(&headers, "header", "HTTP response headers. Zero, one or more are accepted")
+
+	headers := textproto.MIMEHeader{}
+	flag.Func("header", "HTTP response headers. Zero, one or more are accepted", func(value string) error {
+		v := strings.SplitN(value, ":", 2)
+		if len(v) != 2 {
+			return fmt.Errorf("header format must be key:value, got %s", value)
+		}
+		headers.Add(v[0], v[1])
+		return nil
+	})
 	flag.Parse()
 
 	bodyBytes := []byte(*body)
