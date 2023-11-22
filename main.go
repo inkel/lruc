@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"net/textproto"
 	"os"
@@ -43,7 +44,7 @@ func main() {
 	bodyBytes := buf.Bytes()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-
+		log.Printf("method=%s uri=%q remote-addr=%v", r.Method, r.RequestURI, r.RemoteAddr)
 		for key, values := range headers {
 			for _, value := range values {
 				w.Header().Add(key, value)
@@ -54,6 +55,6 @@ func main() {
 		w.Write(bodyBytes)
 	})
 
-	fmt.Printf("Starting lruc on %v\n", *addr)
+	log.Printf(`msg="Starting lruc" addr=%v code=%d content-type=%q body-bytes=%d`, *addr, *code, *ct, len(bodyBytes))
 	fmt.Println(http.ListenAndServe(*addr, nil))
 }
