@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"io"
 	"net/http"
 	"net/textproto"
 	"os"
@@ -30,16 +29,18 @@ func main() {
 	})
 	flag.Parse()
 
-	bodyBytes := []byte(*body)
+	var buf bytes.Buffer
 
 	if *body == "-" {
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, os.Stdin); err != nil {
-			fmt.Printf("Cannot read from stdin: %v\n", err)
+		if _, err := buf.ReadFrom(os.Stdin); err != nil {
+			fmt.Fprintln(os.Stderr, "Cannot read from stdin:", err)
 			os.Exit(1)
 		}
-		bodyBytes = buf.Bytes()
+	} else {
+		buf.WriteString(*body)
 	}
+
+	bodyBytes := buf.Bytes()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 
